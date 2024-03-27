@@ -54,17 +54,18 @@ int main(int argc, char** argv)
         }
     }
 
-    app_init(&(AppInitDesc){
-        .width = 1280,
-        .height = 720
-    });
-    renderer_init();
+    
 
     cloth_init(&cloth,WIDTH,HEIGHT,10,0,0);
 
     
     if(!headless)
     {
+        app_init(&(AppInitDesc){
+            .width = 1280,
+            .height = 720
+        });
+        renderer_init();
         while(app_continue())
         {
             renderer_clear();
@@ -74,12 +75,13 @@ int main(int argc, char** argv)
             app_sleep(16);
         }
     }
+
     else
     {
-        LOG_INFO("Running %d times", runs);
+        LOG_INFO("Running %d times", runs--);
         do
         {
-            LOG_INFO("Run: %d", runs);
+            
             cloth_update(&cloth,0.0167);
         }while(runs-- > 0);
         
@@ -140,7 +142,6 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
     #define SET_CONSTRAINT(IX, IY, C, A, B)\
         (cloth->constraints.a[IY][(IX * 2) + C] = A);\
         (cloth->constraints.b[IY][(IX * 2) + C] = B);\
-        (cloth->constraints.length[IY][(IX * 2) + C] = spacing);\
         (cloth->constraints.active[IY][(IX * 2) + C] = true)
 
 
@@ -155,7 +156,7 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
 
     points_init(&cloth->points, width, height);
     constraints_init(&cloth->constraints, width, height);
-
+    cloth->constraints.length = spacing;
     
     for(y = 0; y < height; y++)
     {
@@ -242,7 +243,6 @@ constraints_init(Constraints* constraints, int width, int height)
 
     constraints->a = malloc(height * sizeof(IVec2*));
     constraints->b = malloc(height * sizeof(IVec2*));
-    constraints->length = malloc(height * sizeof(float*));
     constraints->active = malloc(height * sizeof(bool*));
 
     for(int y = 0; y < height; y++)
@@ -250,7 +250,6 @@ constraints_init(Constraints* constraints, int width, int height)
 
         constraints->a[y] = calloc(width, (sizeof(IVec2) * 2));
         constraints->b[y] = calloc(width, (sizeof(IVec2) * 2));
-        constraints->length[y] = calloc(width, (sizeof(float) * 2));
         constraints->active[y] = calloc(width, (sizeof(bool) * 2));
     }
 
@@ -262,18 +261,18 @@ static bool
 constraint_deinit(Constraints* constraints)
 {
     int height = constraints->height;
-    int width = constraints->width;
+    
     for(int y = 0; y < height; y++)
     {
         free(constraints->a[y]);
         free(constraints->b[y]);
-        free(constraints->length[y]);
+
         free(constraints->active[y]);
     }
 
     free(constraints->a);
     free(constraints->b);
-    free(constraints->length);
+   
     free(constraints->active);
     return true;
 }
@@ -316,27 +315,27 @@ constraint_update(Constraints* constraint, Points* points, int x, int y, float d
 {
     //Satisfy constraints
 
-    Vec2 a_pos = points->position[constraint->a[y][x].y][constraint->a[y][x].x];
-    Vec2 b_pos = points->position[constraint->b[y][x].y][constraint->b[y][x].x];
+    Vec2 *a_pos = &points->position[constraint->a[y][x].y][constraint->a[y][x].x];
+    Vec2 *b_pos = &points->position[constraint->b[y][x].y][constraint->b[y][x].x];
 
     Vec2 diff = v2(
-        a_pos.x - b_pos.x,
-        a_pos.y - b_pos.y
+        (*a_pos).x - (*b_pos).x,
+        (*a_pos).y - (*b_pos).y
     );  
 
     float d = sqrtf(diff.x * diff.x + diff.y * diff.y);
-    float difference_scalar = (constraint->length[y][x] - d) / d;
+    float difference_scalar = (constraint->length - d) / d;
 
     Vec2 translation = v2(
         diff.x * 0.5 * difference_scalar,
         diff.y * 0.5 * difference_scalar
     );
     
-    points->position[constraint->a[y][x].y][constraint->a[y][x].x].x += translation.x;
-    points->position[constraint->a[y][x].y][constraint->a[y][x].x].y += translation.y;
+    a_pos->x += translation.x;
+    a_pos->y += translation.y;
 
-    points->position[constraint->b[y][x].y][constraint->b[y][x].x].x -= translation.x;
-    points->position[constraint->b[y][x].y][constraint->b[y][x].x].y -= translation.y;
+    b_pos->x -= translation.x;
+    b_pos->y -= translation.y;
 
     return true;
 }

@@ -33,14 +33,6 @@ typedef struct IVec2
     };
 } IVec2;
 
-typedef struct Point
-{
-    Vec2 position;
-    Vec2 prev_position;
-    Vec2 intial_position;
-    struct Constraint* constraints[2];
-    bool pinned;
-} Point;
 
 typedef struct Points
 {
@@ -52,16 +44,16 @@ typedef struct Points
 
     int width;
     int height;
-    
+
 } Points;
 
 typedef struct Constraints
 {
     IVec2** a;
     IVec2** b;
-    float** length;
     bool** active;
 
+    float length;
     int width;
     int height;
 

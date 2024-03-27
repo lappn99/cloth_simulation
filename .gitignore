@@ -1,3 +1,4 @@
 clothsim
 .vscode/
 *.o
+cachegrind.out.*
