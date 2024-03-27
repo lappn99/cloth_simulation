@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-struct Constraint;
+struct Constraints;
 
 typedef struct Vec2
 {
@@ -19,6 +19,20 @@ typedef struct Vec2
     };
 } Vec2;
 
+typedef struct IVec2
+{
+    union
+    {
+        struct
+        {
+            int x;
+            int y;
+
+        };
+        int raw[2];
+    };
+} IVec2;
+
 typedef struct Point
 {
     Vec2 position;
@@ -26,18 +40,32 @@ typedef struct Point
     Vec2 intial_position;
     struct Constraint* constraints[2];
     bool pinned;
-    
-
-
 } Point;
 
-typedef struct Constraint
+typedef struct Points
 {
-    Point* a;
-    Point* b;
-    float length;
-    bool active;
-} Constraint;
+    Vec2** position;
+    Vec2** prev_position;
+    Vec2** initial_position;
+    IVec2** constraint;
+    bool** pinned;
+
+    int width;
+    int height;
+    
+} Points;
+
+typedef struct Constraints
+{
+    IVec2** a;
+    IVec2** b;
+    float** length;
+    bool** active;
+
+    int width;
+    int height;
+
+} Constraints;
 
 typedef struct Cloth
 {
@@ -46,13 +74,14 @@ typedef struct Cloth
     int width;
     int height;
     
-    Point** points;
-    Constraint** constraints;
+    Points points;
+    Constraints constraints;
 
 } Cloth;
 
 #define v2(X,Y) ((Vec2) {.x = X, .y = Y})
-#define point(X,Y) ((Point) {.intial_position = v2(X,Y), .position = v2(X,Y), .prev_position = v2(X,Y), .constraints = {NULL,NULL}})
+#define iv2(X,Y) ((IVec2){.x = X, .y = Y})
+//#define point(X,Y) ((Point) {.intial_position = v2(X,Y), .position = v2(X,Y), .prev_position = v2(X,Y), .constraints = {NULL,NULL}})
 
 
 #endif //_CLOTHSIM_H

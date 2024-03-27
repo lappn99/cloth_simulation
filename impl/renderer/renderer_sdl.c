@@ -29,25 +29,30 @@ renderer_init(void)
 bool 
 render_cloth(Cloth* cloth)
 {
+    SDL_SetRenderDrawColor(renderer,255,255,255,255);
     int x,y;
     y = x = 0;
     for(y = 0; y < cloth->height; y++)
     {
         for(x = 0; x < cloth->width; x++)
         {
-            Point point = cloth->points[y][x];
+            
             int c = 0;
             for(c = 0; c < 2;c++)
             {
-                Constraint* constraint;
-                if((constraint = point.constraints[c]) != NULL)
+                if(cloth->constraints.active[y][(x * 2) + c])
                 {
-                    SDL_SetRenderDrawColor(renderer,255,255,255,255); 
-                    SDL_RenderDrawLine(renderer,constraint->a->position.x,
-                        constraint->a->position.y,
-                        constraint->b->position.x,
-                        constraint->b->position.y);
+                    IVec2 a = cloth->constraints.a[y][(x * 2) + c];
+                    IVec2 b = cloth->constraints.b[y][(x * 2) + c];
+
+                    Vec2 a_pos = cloth->points.position[a.y][a.x];
+                    Vec2 b_pos = cloth->points.position[b.y][b.x];
+
+                    SDL_RenderDrawLine(renderer, a_pos.x, a_pos.y, b_pos.x, b_pos.y);
+                    
+                    
                 }
+                
             }
         }
     }
