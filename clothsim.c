@@ -11,17 +11,16 @@ static void cloth_init(Cloth*, int, int, int, int, int);
 static void cloth_deinit(Cloth*);
 static void cloth_update(Cloth*, float);
 
-static void point_create(Point*);
 static bool point_addconstraint(Point*, Constraint*, size_t);
 static bool point_update(Point*, float, float, Vec2, float);
 
 static bool constraint_update(Constraint*, float);
 
-static Cloth cloth;
-
 static const int WIDTH = 100;
 static const int HEIGHT = 50;
 static const Vec2 GRAVITY = v2(0,98.1f);
+
+static Cloth cloth;
 
 int main()
 {
@@ -35,11 +34,11 @@ int main()
     
     while(app_continue())
     {
-        app_sleep(10);
         renderer_clear();
-        cloth_update(&cloth,0.016);
+        cloth_update(&cloth,0.0167);
         render_cloth(&cloth);
         renderer_update();
+        app_sleep(16);
     }
 
     cloth_deinit(&cloth);
@@ -50,8 +49,10 @@ int main()
 static void
 cloth_update(Cloth* cloth, float delta_time)
 {
-    int x,y,c;
-    c = y = x = 0;
+    int x,y;
+    y = x = 0;
+
+    //Update points
     for(y = 0; y < cloth->height; y++)
     {
         for(x = 0; x < cloth->width; x++)
@@ -59,27 +60,28 @@ cloth_update(Cloth* cloth, float delta_time)
             Point* point = &cloth->points[y][x];
             point_update(point,delta_time,cloth->drag,GRAVITY,cloth->elasticity);
         }
-
     }
+
+    //Update constraints
     for(y = 0; y < cloth->height; y++)
     {
         for(x = 0; x < cloth->width; x++)
         {
-            Point point = cloth->points[y][x];
-            //SDL_RenderDrawPoint(renderer,point.position.x, point.position.y);
+            
             int c = 0;
+            //Each point has two constraints, in memory the live beside each other
             for(c = 0; c < 2;c++)
             {
+                //If constraint is there
                 Constraint* constraint;
                 if((constraint = &cloth->constraints[y][(x * 2) + c])->a != NULL)
                 {
                     constraint_update(constraint,delta_time);
                 }
             }
-           
-
         }
     }
+
 }
 
 static void 
@@ -89,18 +91,21 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
     int x,y;
     y = x = 0;
 
-    cloth->points = malloc(sizeof(Point*) * (height));
-    cloth->constraints = malloc(sizeof(Constraint*) * (height));
     cloth->width = width;
     cloth->height = height;
     cloth->drag = 0.01f;
     cloth->elasticity = 10.0f;
 
+    //Allocate memory for points and constraints
+    cloth->points = malloc(sizeof(Point*) * (height));
+    cloth->constraints = malloc(sizeof(Constraint*) * (height));
     for(y = 0; y < height; y++)
     {
         cloth->points[y] = malloc(sizeof(Point) * width);
         cloth->constraints[y] = malloc((sizeof(Constraint) * 2) * (width));
+
         memset(cloth->constraints[y], 0, (sizeof(Constraint) * 2) * (width));
+        memset(cloth->points[y], 0, sizeof(Point) * width);
     }
 
 
@@ -109,19 +114,20 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
         for(x = 0; x < width; x++)
         {
             cloth->points[y][x] = point(start_x + x * spacing, start_y );
-           
-            
+
             Point* point = &cloth->points[y][x];
-            
             point->pinned = false;
 
+            //Pin points that are at the top so that whole thing doesnt fall down
             if(y == 0 && x % 2 == 0)
             {
                 point->pinned = true;
             }            
             
+            //If point exsists beside current point
             if(x != 0)
             {
+                //Add constraint
                 Point* left_point = &cloth->points[y][x - 1];
                 cloth->constraints[y][x * 2] = (Constraint){.a = &cloth->points[y][x], .b = left_point};
                 Constraint* constraint = &cloth->constraints[y][x * 2];
@@ -131,8 +137,10 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
                 point_addconstraint(left_point,constraint,0);
                 
             }
+            //If point exists above current point
             if(y != 0)
             {
+                //Add constraint
                 Point* up_point = &cloth->points[y - 1][x];
                 cloth->constraints[y][(x * 2) + 1] = (Constraint){.a = &cloth->points[y][x], .b = up_point};
                 Constraint* constraint = &cloth->constraints[y][(x * 2) + 1];
@@ -140,22 +148,23 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
                 constraint->active = true;
                 point_addconstraint(point,constraint,1);
                 point_addconstraint(up_point,constraint,1);
-            }
-
-
-
-            
+            }            
         }
     }
-    
-
 }
 
 
 static void 
 cloth_deinit(Cloth* cloth)
 {
-
+    int i = 0;
+    for(i = 0; i < cloth->height; i++)
+    {
+        free(cloth->constraints[i]);
+        free(cloth->points[i]);
+    }
+    free(cloth->constraints);
+    free(cloth->points);
 }
 
 static bool 
@@ -165,17 +174,17 @@ point_addconstraint(Point* point, Constraint* constraint, size_t i)
     {
         return false;
     }
-    point->constraints[i] = constraint;
-    point->num_constraints = i + 1;
 
+    point->constraints[i] = constraint;
     return true;
 }
 
 static bool 
 point_update(Point* point, float delta_time, float drag, Vec2 acceleration, float elasticity)
 {
-    
 
+    //Verlet integration
+    
     Vec2 pos = point->position;
     Vec2 velocity = v2(pos.x - point->prev_position.x, pos.y - point->prev_position.y);
     Vec2 next_pos = v2(
@@ -198,7 +207,8 @@ point_update(Point* point, float delta_time, float drag, Vec2 acceleration, floa
 static bool 
 constraint_update(Constraint* constraint, float delta_time)
 {
-    
+    //Satisfy constraints
+
     Vec2 diff = v2(
         constraint->a->position.x - constraint->b->position.x,
         constraint->a->position.y - constraint->b->position.y
@@ -219,6 +229,4 @@ constraint_update(Constraint* constraint, float delta_time)
     constraint->b->position.y -= translation.y;
 
     return true;
-
-
 }

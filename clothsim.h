@@ -25,7 +25,6 @@ typedef struct Point
     Vec2 prev_position;
     Vec2 intial_position;
     struct Constraint* constraints[2];
-    size_t num_constraints;
     bool pinned;
     
 
@@ -52,11 +51,8 @@ typedef struct Cloth
 
 } Cloth;
 
-
-
-
 #define v2(X,Y) ((Vec2) {.x = X, .y = Y})
-#define point(X,Y) ((Point) {.intial_position = v2(X,Y), .position = v2(X,Y), .prev_position = v2(X,Y),.num_constraints = 0, .constraints = {NULL,NULL}})
+#define point(X,Y) ((Point) {.intial_position = v2(X,Y), .position = v2(X,Y), .prev_position = v2(X,Y), .constraints = {NULL,NULL}})
 
 
 #endif //_CLOTHSIM_H

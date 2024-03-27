@@ -22,9 +22,6 @@ renderer_init(void)
         LOG_ERROR("Could not create SDL Renderer: %s",SDL_GetError());
         return false;
     }
-
-    
-
     return true;
 }
 
@@ -32,7 +29,6 @@ renderer_init(void)
 bool 
 render_cloth(Cloth* cloth)
 {
-    SDL_SetRenderDrawColor(renderer,255,255,255,255);   
     int x,y;
     y = x = 0;
     for(y = 0; y < cloth->height; y++)
@@ -40,20 +36,19 @@ render_cloth(Cloth* cloth)
         for(x = 0; x < cloth->width; x++)
         {
             Point point = cloth->points[y][x];
-            SDL_RenderDrawPoint(renderer,point.position.x, point.position.y);
             int c = 0;
             for(c = 0; c < 2;c++)
             {
                 Constraint* constraint;
                 if((constraint = point.constraints[c]) != NULL)
                 {
+                    SDL_SetRenderDrawColor(renderer,255,255,255,255); 
                     SDL_RenderDrawLine(renderer,constraint->a->position.x,
                         constraint->a->position.y,
                         constraint->b->position.x,
                         constraint->b->position.y);
                 }
             }
-
         }
     }
 
