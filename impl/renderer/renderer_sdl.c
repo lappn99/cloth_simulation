@@ -42,11 +42,11 @@ render_cloth(Cloth* cloth)
             {
                 if(cloth->constraints.active[y][(x * 2) + c])
                 {
-                    IVec2 a = cloth->constraints.a[y][(x * 2) + c];
-                    IVec2 b = cloth->constraints.b[y][(x * 2) + c];
+                    Vec2i a = cloth->constraints.a[y][(x * 2) + c];
+                    Vec2i b = cloth->constraints.b[y][(x * 2) + c];
 
-                    Vec2 a_pos = cloth->points.position[a.y][a.x];
-                    Vec2 b_pos = cloth->points.position[b.y][b.x];
+                    Vec2f a_pos = cloth->points.position[a.y][a.x];
+                    Vec2f b_pos = cloth->points.position[b.y][b.x];
 
                     SDL_RenderDrawLine(renderer, a_pos.x, a_pos.y, b_pos.x, b_pos.y);
                     

@@ -16,7 +16,7 @@ static void cloth_update(Cloth*, float);
 
 static bool points_init(Points*, int, int);
 static bool points_deinit(Points*);
-static bool point_update(Points*, int, int, float, float, Vec2, float);
+static bool point_update(Points*, int, int, float, float, Vec2f, float);
 
 static bool constraints_init(Constraints*, int, int);
 static bool constraint_deinit(Constraints*);
@@ -24,7 +24,7 @@ static bool constraint_update(Constraints*, Points*, int, int, float);
 
 static const int WIDTH = 100;
 static const int HEIGHT = 50;
-static const Vec2 GRAVITY = v2(0,98.1f);
+static const Vec2f GRAVITY = v2(0,98.1f);
 
 static Cloth cloth;
 
@@ -194,18 +194,18 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
 static bool
 points_init(Points* points, int width, int height)
 {
-    points->initial_position = malloc(sizeof(Vec2*) * height);
-    points->position = malloc(sizeof(Vec2*) * height);
-    points->prev_position = malloc(sizeof(Vec2*) * height);
-    points->constraint = malloc(sizeof(IVec2*) * height);
+    points->initial_position = malloc(sizeof(Vec2f*) * height);
+    points->position = malloc(sizeof(Vec2f*) * height);
+    points->prev_position = malloc(sizeof(Vec2f*) * height);
+    points->constraint = malloc(sizeof(Vec2i*) * height);
     points->pinned = malloc(sizeof(bool*) * height);
 
     for(int y = 0; y < height; y++)
     {
-        points->initial_position[y] = calloc(width,sizeof(Vec2));
-        points->position[y] = calloc(width,sizeof(Vec2) );
-        points->prev_position[y] = calloc(width, sizeof(Vec2));
-        points->constraint[y] = calloc(width, (sizeof(IVec2) * 2));
+        points->initial_position[y] = calloc(width,sizeof(Vec2f));
+        points->position[y] = calloc(width,sizeof(Vec2f) );
+        points->prev_position[y] = calloc(width, sizeof(Vec2f));
+        points->constraint[y] = calloc(width, (sizeof(Vec2i) * 2));
         points->pinned[y] = calloc(width, sizeof(bool));            
     }
 
@@ -242,15 +242,15 @@ constraints_init(Constraints* constraints, int width, int height)
     constraints->width = width;
     constraints->height = height;
 
-    constraints->a = malloc(height * sizeof(IVec2*));
-    constraints->b = malloc(height * sizeof(IVec2*));
+    constraints->a = malloc(height * sizeof(Vec2i*));
+    constraints->b = malloc(height * sizeof(Vec2i*));
     constraints->active = malloc(height * sizeof(bool*));
 
     for(int y = 0; y < height; y++)
     {
 
-        constraints->a[y] = calloc(width, (sizeof(IVec2) * 2));
-        constraints->b[y] = calloc(width, (sizeof(IVec2) * 2));
+        constraints->a[y] = calloc(width, (sizeof(Vec2i) * 2));
+        constraints->b[y] = calloc(width, (sizeof(Vec2i) * 2));
         constraints->active[y] = calloc(width, (sizeof(bool) * 2));
     }
 
@@ -286,15 +286,15 @@ cloth_deinit(Cloth* cloth)
 }
 
 static bool 
-point_update(Points* points, int x, int y, float delta_time, float drag, Vec2 acceleration, float elasticity)
+point_update(Points* points, int x, int y, float delta_time, float drag, Vec2f acceleration, float elasticity)
 {
 
     //Verlet integration
     
-    Vec2 pos = points->position[y][x];
-    Vec2 prev = points->prev_position[y][x];
-    Vec2 velocity = v2(pos.x - prev.x, pos.y - prev.y);
-    Vec2 next_pos = v2(
+    Vec2f pos = points->position[y][x];
+    Vec2f prev = points->prev_position[y][x];
+    Vec2f velocity = v2(pos.x - prev.x, pos.y - prev.y);
+    Vec2f next_pos = v2(
         pos.x + velocity.x * (1.0f - drag) + acceleration.x * (1.0f - drag) * (delta_time * delta_time),
         pos.y + velocity.y * (1.0f - drag) + acceleration.y * (1.0f - drag) * (delta_time * delta_time)
     );
@@ -316,18 +316,18 @@ constraint_update(Constraints* constraint, Points* points, int x, int y, float d
 {
     //Satisfy constraints
 
-    Vec2 *a_pos = &points->position[constraint->a[y][x].y][constraint->a[y][x].x];
-    Vec2 *b_pos = &points->position[constraint->b[y][x].y][constraint->b[y][x].x];
+    Vec2f *a_pos = &points->position[constraint->a[y][x].y][constraint->a[y][x].x];
+    Vec2f *b_pos = &points->position[constraint->b[y][x].y][constraint->b[y][x].x];
 
-    Vec2 diff = v2(
-        (*a_pos).x - (*b_pos).x,
-        (*a_pos).y - (*b_pos).y
-    );  
+    Vec2f diff = v2(
+        a_pos->x - b_pos->x,
+        a_pos->y - b_pos->y 
+    );
 
     float d = sqrtf(diff.x * diff.x + diff.y * diff.y);
     float difference_scalar = (constraint->length - d) / d;
 
-    Vec2 translation = v2(
+    Vec2f translation = v2(
         diff.x * 0.5 * difference_scalar,
         diff.y * 0.5 * difference_scalar
     );
