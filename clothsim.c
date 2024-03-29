@@ -16,8 +16,8 @@ static void cloth_update(Cloth*, float);
 
 static bool points_init(Points*, int, int);
 static bool points_deinit(Points*);
-static bool point_update(Points*, int, int, float, float, Vec2f, float);
-static bool points_update(Points*, float, float, Vec2f, float);
+static bool point_update(Points*, int, int, float, float, Vec3f, float);
+
 
 static bool constraints_init(Constraints*, int, int);
 static bool constraint_deinit(Constraints*);
@@ -27,7 +27,7 @@ static bool point_incircle(float, float, float, float, float);
 
 static const int WIDTH = 100;
 static const int HEIGHT = 50;
-static const Vec2f GRAVITY = v2f(0,98.1f);
+static const Vec3f GRAVITY = v3f(0,98.1f,0.0f);
 static float cursor_radius = 20.0f;
 
 static Cloth cloth;
@@ -109,15 +109,15 @@ cloth_update(Cloth* cloth, float delta_time)
         {
             Vec2i mouse_position = app_getmouseposition();
             
-            Vec2f position = cloth->points.position[y][x];
-            Vec2f acceleration = GRAVITY;
+            Vec3f position = cloth->points.position[y][x];
+            Vec3f acceleration = GRAVITY;
             
             if(point_incircle((float)mouse_position.x, (float)mouse_position.y, position.x, position.y, cursor_radius))
             {
                 cloth->points.selected[y][x] = true;
                 if(app_mousebuttonleft())
                 {
-                    acceleration = v2f(0,-10000.f);
+                    acceleration = v3f(0,-10000.0f, 10000.f);
                 }
             }
             else
@@ -163,7 +163,7 @@ cloth_init(Cloth* cloth, float drag, float elasticity , int width, int height, i
 {
     
     #define SET_POINT(IX, IY, X, Y)\
-         (cloth->points.prev_position[IY][IX] = cloth->points.initial_position[IY][IX] = cloth->points.position[IY][IX] = v2f(X,Y))
+         (cloth->points.prev_position[IY][IX] = cloth->points.initial_position[IY][IX] = cloth->points.position[IY][IX] = v3f(X,Y, 0.0f))
 
     #define SET_CONSTRAINT(IX, IY, C, A, B)\
         (cloth->constraints.a[IY][(IX * 2) + C] = A);\
@@ -219,18 +219,18 @@ cloth_init(Cloth* cloth, float drag, float elasticity , int width, int height, i
 static bool
 points_init(Points* points, int width, int height)
 {
-    points->initial_position = malloc(sizeof(Vec2f*) * height);
-    points->position = malloc(sizeof(Vec2f*) * height);
-    points->prev_position = malloc(sizeof(Vec2f*) * height);
+    points->initial_position = malloc(sizeof(Vec3f*) * height);
+    points->position = malloc(sizeof(Vec3f*) * height);
+    points->prev_position = malloc(sizeof(Vec3f*) * height);
     points->constraint = malloc(sizeof(Vec2i*) * height);
     points->pinned = malloc(sizeof(bool*) * height);
     points->selected = malloc(sizeof(bool*) * height);
 
     for(int y = 0; y < height; y++)
     {
-        points->initial_position[y] = calloc(width,sizeof(Vec2f));
-        points->position[y] = calloc(width,sizeof(Vec2f) );
-        points->prev_position[y] = calloc(width, sizeof(Vec2f));
+        points->initial_position[y] = calloc(width,sizeof(Vec3f));
+        points->position[y] = calloc(width,sizeof(Vec3f) );
+        points->prev_position[y] = calloc(width, sizeof(Vec3f));
         points->constraint[y] = calloc(width, (sizeof(Vec2i) * 2));
         points->pinned[y] = calloc(width, sizeof(bool));     
         points->selected[y] = calloc(width, sizeof(bool));      
@@ -313,7 +313,7 @@ cloth_deinit(Cloth* cloth)
 }
 
 static bool 
-point_update(Points* points, int x, int y, float delta_time, float drag, Vec2f acceleration, float elasticity)
+point_update(Points* points, int x, int y, float delta_time, float drag, Vec3f acceleration, float elasticity)
 {
 
 
@@ -321,12 +321,13 @@ point_update(Points* points, int x, int y, float delta_time, float drag, Vec2f a
 
     //Verlet integration
     
-    Vec2f pos = points->position[y][x];
-    Vec2f prev = points->prev_position[y][x];
-    Vec2f velocity = v2f(pos.x - prev.x, pos.y - prev.y);
-    Vec2f next_pos = v2f(
+    Vec3f pos = points->position[y][x];
+    Vec3f prev = points->prev_position[y][x];
+    Vec3f velocity = v3f(pos.x - prev.x, pos.y - prev.y, pos.z - prev.z);
+    Vec3f next_pos = v3f(
         pos.x + velocity.x * (1.0f - drag) + acceleration.x * (1.0f - drag) * (delta_time * delta_time),
-        pos.y + velocity.y * (1.0f - drag) + acceleration.y * (1.0f - drag) * (delta_time * delta_time)
+        pos.y + velocity.y * (1.0f - drag) + acceleration.y * (1.0f - drag) * (delta_time * delta_time),
+        pos.z + velocity.z * (1.0f - drag) + acceleration.z * (1.0f - drag) * (delta_time * delta_time)
     );
 
     if(points->pinned[y][x])
@@ -348,27 +349,31 @@ constraint_update(Constraints* constraint, Points* points, int x, int y, float d
 
     
 
-    Vec2f *a_pos = &points->position[constraint->a[y][x].y][constraint->a[y][x].x];
-    Vec2f *b_pos = &points->position[constraint->b[y][x].y][constraint->b[y][x].x];
+    Vec3f *a_pos = &points->position[constraint->a[y][x].y][constraint->a[y][x].x];
+    Vec3f *b_pos = &points->position[constraint->b[y][x].y][constraint->b[y][x].x];
 
-    Vec2f diff = v2f(
+    Vec3f diff = v3f(
         a_pos->x - b_pos->x,
-        a_pos->y - b_pos->y 
+        a_pos->y - b_pos->y,
+        a_pos->z - b_pos->z
     );
 
-    float d = sqrtf(diff.x * diff.x + diff.y * diff.y);
+    float d = sqrtf(diff.x * diff.x + diff.y * diff.y +diff.z * diff.z);
     float difference_scalar = (constraint->length - d) / d;
 
-    Vec2f translation = v2f(
+    Vec3f translation = v3f(
         diff.x * 0.5 * difference_scalar,
-        diff.y * 0.5 * difference_scalar
+        diff.y * 0.5 * difference_scalar,
+        diff.z * 0.5 * difference_scalar
     );
     
     a_pos->x += translation.x;
     a_pos->y += translation.y;
+    a_pos->z += translation.z;
 
     b_pos->x -= translation.x;
     b_pos->y -= translation.y;
+    b_pos->z -= translation.z;
 
     return true;
 }

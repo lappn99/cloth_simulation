@@ -44,6 +44,8 @@ typedef struct Vec2i
 } Vec2i;
 
 #define v2f(X,Y) ((Vec2f) {.x = X, .y = Y})
+#define v3f(X,Y,Z) ((Vec3f) {.x = X, .y = Y, .z = Z})
 #define v2i(X,Y) ((Vec2i){.x = X, .y = Y})
+
 
 #endif //_CLOTHSIM_LINALG_H

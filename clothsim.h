@@ -11,9 +11,9 @@ struct Constraints;
 
 typedef struct Points
 {
-    Vec2f** position;
-    Vec2f** prev_position;
-    Vec2f** initial_position;
+    Vec3f** position;
+    Vec3f** prev_position;
+    Vec3f** initial_position;
     Vec2i** constraint;
     bool** pinned;
     bool** selected;
