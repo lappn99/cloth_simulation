@@ -8,6 +8,8 @@
 
 static SDL_Window* window;
 
+
+
 bool 
 app_init(AppInitDesc* desc)
 {
@@ -26,6 +28,7 @@ app_init(AppInitDesc* desc)
         LOG_ERROR("Could not creat SDL2 window", NULL);
         return false;
     }
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC,"1");
     return true;
 
 
@@ -64,4 +67,53 @@ void
 app_sleep(unsigned int ms)
 {
     SDL_Delay(ms);
+}
+
+Vec2i 
+app_getmouseposition(void)
+{
+    Vec2i position;
+    SDL_GetMouseState(&position.x, &position.y);
+    return position;
+}
+
+bool 
+app_mousebuttonleft(void)
+{
+    return (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK) != 0;
+}
+
+bool 
+app_mousebuttonright(void)
+{
+    return (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_RMASK) != 0;
+}
+
+float 
+app_getticks(void)
+{
+    return (float)SDL_GetTicks();
+}
+
+float 
+app_getdeltatime(void)
+{
+
+    static float start = 0.0f;
+    static float end = 0.0f;
+    
+    if(start == 0.0f)
+    {
+        start = app_getticks();
+        return 0.0f;
+    }
+
+    end = app_getticks();
+
+    float dt = end - start;
+
+    start = app_getticks();
+
+    return dt;
+
 }

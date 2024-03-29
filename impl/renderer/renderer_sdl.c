@@ -29,7 +29,7 @@ renderer_init(void)
 bool 
 render_cloth(Cloth* cloth)
 {
-    SDL_SetRenderDrawColor(renderer,255,255,255,255);
+    
     int x,y;
     y = x = 0;
     for(y = 0; y < cloth->height; y++)
@@ -37,6 +37,14 @@ render_cloth(Cloth* cloth)
         for(x = 0; x < cloth->width; x++)
         {
             
+            if(cloth->points.selected[y][x])
+            {
+                SDL_SetRenderDrawColor(renderer,0,255,0,255);
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(renderer,255,255,255,255);
+            }
             int c = 0;
             for(c = 0; c < 2;c++)
             {

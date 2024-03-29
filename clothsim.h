@@ -2,45 +2,21 @@
 #define _CLOTHSIM_H
 
 #include <stdbool.h>
+#include <linalg.h>
 
 struct Constraints;
 
-typedef struct Vec2
-{
-    union
-    {
-        struct
-        {
-            float x;
-            float y;
 
-        };
-        float raw[2];
-    };
-} Vec2;
-
-typedef struct IVec2
-{
-    union
-    {
-        struct
-        {
-            int x;
-            int y;
-
-        };
-        int raw[2];
-    };
-} IVec2;
 
 
 typedef struct Points
 {
-    Vec2** position;
-    Vec2** prev_position;
-    Vec2** initial_position;
-    IVec2** constraint;
+    Vec2f** position;
+    Vec2f** prev_position;
+    Vec2f** initial_position;
+    Vec2i** constraint;
     bool** pinned;
+    bool** selected;
 
     int width;
     int height;
@@ -49,8 +25,8 @@ typedef struct Points
 
 typedef struct Constraints
 {
-    IVec2** a;
-    IVec2** b;
+    Vec2i** a;
+    Vec2i** b;
     bool** active;
 
     float length;
@@ -70,10 +46,5 @@ typedef struct Cloth
     Constraints constraints;
 
 } Cloth;
-
-#define v2(X,Y) ((Vec2) {.x = X, .y = Y})
-#define iv2(X,Y) ((IVec2){.x = X, .y = Y})
-//#define point(X,Y) ((Point) {.intial_position = v2(X,Y), .position = v2(X,Y), .prev_position = v2(X,Y), .constraints = {NULL,NULL}})
-
 
 #endif //_CLOTHSIM_H
