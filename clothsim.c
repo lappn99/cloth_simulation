@@ -10,7 +10,7 @@
 #include "renderer.h"
 #include <logger.h>
 
-static void cloth_init(Cloth*, int, int, int, int, int);
+static void cloth_init(Cloth*, float, float, int, int, int, int, int);
 static void cloth_deinit(Cloth*);
 static void cloth_update(Cloth*, float);
 
@@ -28,7 +28,7 @@ static bool point_incircle(float, float, float, float, float);
 static const int WIDTH = 100;
 static const int HEIGHT = 50;
 static const Vec2f GRAVITY = v2f(0,98.1f);
-static float cursor_radius = 15.0f;
+static float cursor_radius = 20.0f;
 
 static Cloth cloth;
 
@@ -59,11 +59,7 @@ int main(int argc, char** argv)
         }
     }
 
-    
-
-    cloth_init(&cloth,WIDTH,HEIGHT,10,0,0);
-
-   
+    cloth_init(&cloth,0.01,1.f,WIDTH,HEIGHT,10,0,0);
 
     if(!headless)
     {
@@ -75,14 +71,10 @@ int main(int argc, char** argv)
         while(app_continue())
         {
             float dt = app_getdeltatime();
-            LOG_INFO("%f", dt);
             renderer_clear();
             cloth_update(&cloth,dt/1000.f);
             render_cloth(&cloth);
             renderer_update();
-           
-            
-            
         }
     }
 
@@ -167,7 +159,7 @@ cloth_update(Cloth* cloth, float delta_time)
 }
 
 static void 
-cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int start_y)
+cloth_init(Cloth* cloth, float drag, float elasticity , int width, int height, int spacing, int start_x, int start_y)
 {
     
     #define SET_POINT(IX, IY, X, Y)\
@@ -185,8 +177,8 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
 
     cloth->width = width;
     cloth->height = height;
-    cloth->drag = 0.01f;
-    cloth->elasticity = 10.0f;
+    cloth->drag = drag;
+    cloth->elasticity = elasticity;
 
     points_init(&cloth->points, width, height);
     constraints_init(&cloth->constraints, width, height);
@@ -197,7 +189,7 @@ cloth_init(Cloth* cloth, int width, int height, int spacing, int start_x, int st
         for(x = 0; x < width; x++)
         {
             
-            SET_POINT(x,y,start_x + x * spacing, start_y + y * spacing );
+            SET_POINT(x,y,start_x + x * spacing, start_y + y * spacing);
 
             //Pin points that are at the top so that whole thing doesnt fall down
             if(y == 0 && x % 2 == 0)
