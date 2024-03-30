@@ -13,6 +13,7 @@ typedef struct GL
     PFNGLBUFFERDATAPROC                 glBufferData;
     PFNGLBUFFERSUBDATAPROC              glBufferSubData;
     PFNGLDRAWARRAYSEXTPROC              glDrawArrays;
+    PFNGLDRAWRANGEELEMENTSPROC          glDrawRangeElements;
     PFNGLDRAWARRAYSINDIRECTPROC         glDrawArraysIndirect;
     PFNGLENABLEVERTEXATTRIBARRAYPROC    glEnableVertexAttribArray;
     PFNGLVERTEXATTRIBPOINTERPROC        glVertexAttribPointer;

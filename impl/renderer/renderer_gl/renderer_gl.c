@@ -20,6 +20,7 @@ GL gl;
 static GLuint create_shader(const char*, GLenum);
 
 static GLuint vbo;
+static GLuint ebo;
 static GLuint shader_program;
 static GLuint vao;
 
@@ -36,6 +37,7 @@ renderer_init(void)
     glClearColor(0.0f,0.0f,0.0f,1.0f);
     
     gl.glGenBuffers(1, &vbo);
+    gl.glGenBuffers(1,&ebo);
     gl.glGenVertexArrays(1,&vao);
 
     vertex_shader = create_shader("./impl/renderer/renderer_gl/shaders/vertex.glsl", GL_VERTEX_SHADER);
@@ -73,28 +75,42 @@ render_cloth(struct Cloth* cloth)
     //glViewport(0,window_size.y,window_size.x,window_size.y);
     Mat4f orthographic_matrix = orthographic(0,window_size.x,0,window_size.y,-1.f,1.f);
     gl.glBindVertexArray(vao);
+
     gl.glBindBuffer(GL_ARRAY_BUFFER, vbo);
     gl.glBufferData(GL_ARRAY_BUFFER, 
         (cloth->height * cloth->width) * sizeof(Vec3f),
         NULL,GL_DYNAMIC_DRAW);
-    
-    for(y = 0; y < cloth->height; y++)
-    {
-        
-        int offset = (y * cloth->width) * sizeof(Vec3f);
-        Vec3f* row = cloth->points.position[y];
-        gl.glBufferSubData(GL_ARRAY_BUFFER,offset,cloth->width * sizeof(Vec3f),row);
-        
-    }
-    
+
     GLint uniform_loc = gl.glGetUniformLocation(shader_program,"projection");
 
     gl.glUseProgram(shader_program);
     gl.glUniformMatrix4fv(uniform_loc,1,GL_FALSE,orthographic_matrix.raw);
     gl.glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3 * sizeof(float),(void*)0);
     gl.glEnableVertexAttribArray(0);
+    for(y = 0; y < cloth->height; y++)
+    {
+        int offset = (y * cloth->width) * sizeof(Vec3f);
+        Vec3f* row = cloth->points.position[y];
+        gl.glBufferSubData(GL_ARRAY_BUFFER,offset,cloth->width * sizeof(Vec3f),row); 
+    }
 
-    gl.glDrawArrays(GL_POINTS,0,cloth->height * cloth->width);
+    for(y = 1; y < cloth->height; y++)
+    {
+        for(x = 1; x < cloth->width; x++)
+        {
+            unsigned int indices[6] = {0};
+            indices[0] = (cloth->width * y) + x;
+            indices[1] = (cloth->width * (y - 1)) + x;
+            indices[2] = (cloth->width * y) + (x - 1);
+            indices[3] = (cloth->width * (y - 1)) + (x - 1);
+            indices[4] = (cloth->width * y) + (x - 1);
+            indices[5] = ((cloth->width * (y - 1)) + x);
+            glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,&indices[0]);
+        }
+    }
+
+    //gl.glDrawArrays(GL_POINTS,0,cloth->height * cloth->width);
+    //glDrawElements(GL_TRIANGLES,  ((cloth->height - 1) * (cloth->width - 1)) * 3, GL_UNSIGNED_INT,NULL);
     gl.glBindBuffer(GL_ARRAY_BUFFER,0);
     gl.glBindVertexArray(0);
     return true;
@@ -195,6 +211,7 @@ bind_gl(GL* gl)
     REGISTER_GL_FUNC(glUniformMatrix4fv);
     REGISTER_GL_FUNC(glGenVertexArrays);
     REGISTER_GL_FUNC(glBindVertexArray);
+    REGISTER_GL_FUNC(glDrawRangeElements);
 
     GLint numExtensions = 0;
     glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
