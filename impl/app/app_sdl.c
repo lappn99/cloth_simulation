@@ -104,6 +104,14 @@ app_getticks(void)
     return (float)SDL_GetTicks();
 }
 
+Vec2i 
+app_getwindowsize(void)
+{
+    Vec2i size;
+    SDL_GetWindowSize(window, &size.x, &size.y);
+    return size;
+}
+
 float 
 app_getdeltatime(void)
 {
@@ -131,6 +139,10 @@ app_getdeltatime(void)
 void* 
 app_getglcontext(int minor, int major)
 {
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major );
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor );
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
     SDL_GLContext context = SDL_GL_CreateContext(window);
     if(context == NULL)
     {
@@ -138,9 +150,7 @@ app_getglcontext(int minor, int major)
         return NULL;
         
     }
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major );
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor );
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+
     if(SDL_GL_MakeCurrent(window,context) != 0)
     {
         LOG_ERROR("Could not make GL context current: %s", SDL_GetError());
@@ -152,6 +162,8 @@ app_getglcontext(int minor, int major)
 void 
 app_swapwindow(void)
 {
+    //SDL_GL_SwapBuffers();
     SDL_GL_SwapWindow(window);
+
 }
 #endif

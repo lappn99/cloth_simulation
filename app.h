@@ -22,6 +22,8 @@ Vec2i app_getmouseposition(void);
 bool app_mousebuttonleft(void);
 bool app_mousebuttonright(void);
 
+Vec2i app_getwindowsize(void);
+
 float app_getticks(void);
 float app_getdeltatime(void);
 

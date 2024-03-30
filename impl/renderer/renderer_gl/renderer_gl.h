@@ -11,6 +11,7 @@ typedef struct GL
     PFNGLBINDBUFFERPROC                 glBindBuffer;
     PFNGLGENBUFFERSPROC                 glGenBuffers;
     PFNGLBUFFERDATAPROC                 glBufferData;
+    PFNGLBUFFERSUBDATAPROC              glBufferSubData;
     PFNGLDRAWARRAYSEXTPROC              glDrawArrays;
     PFNGLDRAWARRAYSINDIRECTPROC         glDrawArraysIndirect;
     PFNGLENABLEVERTEXATTRIBARRAYPROC    glEnableVertexAttribArray;
@@ -24,8 +25,13 @@ typedef struct GL
     PFNGLCOMPILESHADERPROC              glCompileShader;
     PFNGLCREATEPROGRAMPROC              glCreateProgram;
     PFNGLGETSHADERIVPROC                glGetShaderiv;
+    PFNGLGETSHADERINFOLOGPROC           glGetShaderInfoLog;
     PFNGLGETPROGRAMIVPROC               glGetProgramiv;
     PFNGLGETSTRINGIPROC                 glGetStringi;
+    PFNGLUNIFORMMATRIX4FVPROC           glUniformMatrix4fv;
+    PFNGLGETUNIFORMLOCATIONPROC         glGetUniformLocation;
+    PFNGLGENVERTEXARRAYSPROC            glGenVertexArrays;
+    PFNGLBINDVERTEXARRAYPROC            glBindVertexArray;
     bool initialized;
 
 } GL;

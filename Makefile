@@ -2,7 +2,7 @@ CC=gcc
 CCFLAGS=-Wall -g -c
 
 LDFLAGS=
-MODULES=clothsim app renderer logger
+MODULES=clothsim app renderer logger linalg
 OBJDIR=./obj
 OBJS= ${addprefix ${OBJDIR}/, ${addsuffix .o, ${MODULES}}}
 LIBS=-lSDL2 -lm 
