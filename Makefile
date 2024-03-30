@@ -9,7 +9,16 @@ LIBS=-lSDL2 -lm
 INCLUDE=-I.
 
 APP_IMPL=./impl/app/app_sdl.c
-RENDERER_IMPL=./impl/renderer/renderer_sdl.c
+
+
+ifeq ($(RENDERER_USE_GL),1)
+LIBS+= -lGL
+RENDERER_IMPL=./impl/renderer/renderer_gl/renderer_gl.c
+CCFLAGS += -DRENDERER_USE_GL
+$(info Using OpenGL Renderer)
+endif
+
+RENDERER_IMPL ?= ./impl/renderer/renderer_sdl.c
 
 build: clothsim
 

@@ -3,6 +3,11 @@
 
 #include <SDL2/SDL.h>
 
+#ifdef RENDERER_USE_GL
+#include <SDL2/SDL_opengl.h>
+#endif
+
+
 #include <app.h>
 #include <logger.h>
 
@@ -19,9 +24,13 @@ app_init(AppInitDesc* desc)
         return false;
     }
 
+    int flags = SDL_WINDOW_SHOWN;
+    #ifdef RENDERER_USE_GL
+    flags |= SDL_WINDOW_OPENGL;
+    #endif
     window = SDL_CreateWindow("Cloth simulation", 
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-        desc->width, desc->height, SDL_WINDOW_SHOWN);
+        desc->width, desc->height, flags);
 
     if(window == NULL)
     {
@@ -117,3 +126,32 @@ app_getdeltatime(void)
     return dt;
 
 }
+
+#ifdef RENDERER_USE_GL
+void* 
+app_getglcontext(int minor, int major)
+{
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    if(context == NULL)
+    {
+        LOG_ERROR("Could not create context: %s", SDL_GetError());
+        return NULL;
+        
+    }
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+    if(SDL_GL_MakeCurrent(window,context) != 0)
+    {
+        LOG_ERROR("Could not make GL context current: %s", SDL_GetError());
+    }
+    return context;
+
+}
+
+void 
+app_swapwindow(void)
+{
+    SDL_GL_SwapWindow(window);
+}
+#endif

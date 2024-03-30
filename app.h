@@ -25,4 +25,9 @@ bool app_mousebuttonright(void);
 float app_getticks(void);
 float app_getdeltatime(void);
 
+#ifdef RENDERER_USE_GL
+void* app_getglcontext(int, int);
+void app_swapwindow(void);
+#endif
+
 #endif //_CLOTHSIM_APP_H
