@@ -58,7 +58,7 @@ renderer_init(void)
 
     gl.glDeleteShader(vertex_shader);
     gl.glDeleteShader(fragment_shader);
-    glEnable(GL_PROGRAM_POINT_SIZE);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
 
     return true;
@@ -98,14 +98,18 @@ render_cloth(struct Cloth* cloth)
     {
         for(x = 1; x < cloth->width; x++)
         {
-            unsigned int indices[6] = {0};
-            indices[0] = (cloth->width * y) + x;
-            indices[1] = (cloth->width * (y - 1)) + x;
-            indices[2] = (cloth->width * y) + (x - 1);
-            indices[3] = (cloth->width * (y - 1)) + (x - 1);
-            indices[4] = (cloth->width * y) + (x - 1);
-            indices[5] = ((cloth->width * (y - 1)) + x);
-            glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,&indices[0]);
+            if(cloth->constraints.active[y][(x * 2)] && cloth->constraints.active[y][(x * 2) + 1])
+            {
+                unsigned int indices[6] = {0};
+                indices[0] = (cloth->width * y) + x;
+                indices[1] = (cloth->width * (y - 1)) + x;
+                indices[2] = (cloth->width * y) + (x - 1);
+                indices[3] = (cloth->width * (y - 1)) + (x - 1);
+                indices[4] = (cloth->width * y) + (x - 1);
+                indices[5] = ((cloth->width * (y - 1)) + x);
+                glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,&indices[0]);
+            }
+
         }
     }
 

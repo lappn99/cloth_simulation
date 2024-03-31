@@ -117,7 +117,7 @@ cloth_update(Cloth* cloth, float delta_time)
                 cloth->points.selected[y][x] = true;
                 if(app_mousebuttonleft())
                 {
-                    acceleration = v3f(0,-10000.0f, 10000.f);
+                    acceleration = v3f(0,0, 10000.f);
                 }
             }
             else

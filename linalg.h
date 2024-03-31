@@ -85,5 +85,5 @@ typedef struct Mat4f
 
 
 Mat4f orthographic(float, float, float, float, float, float);
-
+Mat4f perspective(float, float, float, float, float);
 #endif //_CLOTHSIM_LINALG_H
