@@ -24,6 +24,14 @@ static GLuint ebo;
 static GLuint shader_program;
 static GLuint vao;
 
+typedef struct
+{
+    GLuint count;
+    GLuint instance_count;
+    GLuint first_index;
+    GLuint base_vertex;
+    GLuint base_instance;
+} DrawElementsIndirectCommand;
 
 bool 
 renderer_init(void)
@@ -93,6 +101,25 @@ render_cloth(struct Cloth* cloth)
         Vec3f* row = cloth->points.position[y];
         gl.glBufferSubData(GL_ARRAY_BUFFER,offset,cloth->width * sizeof(Vec3f),row); 
     }
+    
+    /*
+    unsigned int indices[6] = {
+        (cloth->width) + 1, // Bottom right
+        1, // Top right
+        (cloth->width * 1), // Bottom left
+        0, // Top left
+        (cloth->width * 1), // Bottom left
+        1  // Top right
+    } ;
+    */
+
+   
+
+    Vec2i indices[2] = {
+        v2i(cloth->width + 1, 1), 
+        v2i(cloth -> width + 1, cloth->width)
+    };
+
 
     for(y = 1; y < cloth->height; y++)
     {
@@ -100,21 +127,22 @@ render_cloth(struct Cloth* cloth)
         {
             if(cloth->constraints.active[y][(x * 2)] && cloth->constraints.active[y][(x * 2) + 1])
             {
-                unsigned int indices[6] = {0};
-                indices[0] = (cloth->width * y) + x;
-                indices[1] = (cloth->width * (y - 1)) + x;
-                indices[2] = (cloth->width * y) + (x - 1);
-                indices[3] = (cloth->width * (y - 1)) + (x - 1);
-                indices[4] = (cloth->width * y) + (x - 1);
-                indices[5] = ((cloth->width * (y - 1)) + x);
-                glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,&indices[0]);
+                int c = 0;
+                for(c = 0; c < 2;c++)
+                {
+                    if(cloth->constraints.active[y][(x * 2) + c])
+                    {
+                        gl.glDrawElementsBaseVertex(GL_LINES,2,GL_UNSIGNED_INT,(unsigned int*)&indices[c].raw, (cloth->width * (y - 1)) + x - 1);
+                    }
+                }
+
+                
+                
             }
 
         }
     }
 
-    //gl.glDrawArrays(GL_POINTS,0,cloth->height * cloth->width);
-    //glDrawElements(GL_TRIANGLES,  ((cloth->height - 1) * (cloth->width - 1)) * 3, GL_UNSIGNED_INT,NULL);
     gl.glBindBuffer(GL_ARRAY_BUFFER,0);
     gl.glBindVertexArray(0);
     return true;
@@ -216,6 +244,7 @@ bind_gl(GL* gl)
     REGISTER_GL_FUNC(glGenVertexArrays);
     REGISTER_GL_FUNC(glBindVertexArray);
     REGISTER_GL_FUNC(glDrawRangeElements);
+    REGISTER_GL_FUNC(glDrawElementsBaseVertex);
 
     GLint numExtensions = 0;
     glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
