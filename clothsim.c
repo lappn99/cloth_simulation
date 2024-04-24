@@ -18,7 +18,6 @@ static bool points_init(Points*, int, int);
 static bool points_deinit(Points*);
 static bool point_update(Points*, int, int, float, float, Vec3f, float);
 
-
 static bool constraints_init(Constraints*, int, int);
 static bool constraint_deinit(Constraints*);
 static bool constraint_update(Constraints*, Points*, int, int, float);
@@ -59,7 +58,7 @@ int main(int argc, char** argv)
         }
     }
 
-    cloth_init(&cloth,0.01,1.f,WIDTH,HEIGHT,10,0,0);
+    cloth_init(&cloth,0.01,1.f,WIDTH,HEIGHT,15,0,0);
 
     if(!headless)
     {

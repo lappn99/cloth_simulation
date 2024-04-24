@@ -15,6 +15,7 @@ typedef struct GL
     PFNGLDRAWARRAYSEXTPROC              glDrawArrays;
     PFNGLDRAWRANGEELEMENTSPROC          glDrawRangeElements;
     PFNGLDRAWELEMENTSBASEVERTEXPROC     glDrawElementsBaseVertex;
+    PFNGLDRAWELEMENTSINDIRECTPROC       glDrawElementsIndirect;
     PFNGLDRAWARRAYSINDIRECTPROC         glDrawArraysIndirect;
     PFNGLENABLEVERTEXATTRIBARRAYPROC    glEnableVertexAttribArray;
     PFNGLVERTEXATTRIBPOINTERPROC        glVertexAttribPointer;

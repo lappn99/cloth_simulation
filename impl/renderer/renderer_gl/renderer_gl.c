@@ -20,7 +20,6 @@ GL gl;
 static GLuint create_shader(const char*, GLenum);
 
 static GLuint vbo;
-static GLuint ebo;
 static GLuint shader_program;
 static GLuint vao;
 
@@ -45,7 +44,6 @@ renderer_init(void)
     glClearColor(0.0f,0.0f,0.0f,1.0f);
     
     gl.glGenBuffers(1, &vbo);
-    gl.glGenBuffers(1,&ebo);
     gl.glGenVertexArrays(1,&vao);
 
     vertex_shader = create_shader("./impl/renderer/renderer_gl/shaders/vertex.glsl", GL_VERTEX_SHADER);
@@ -113,13 +111,10 @@ render_cloth(struct Cloth* cloth)
     } ;
     */
 
-   
-
     Vec2i indices[2] = {
         v2i(cloth->width + 1, 1), 
         v2i(cloth -> width + 1, cloth->width)
     };
-
 
     for(y = 1; y < cloth->height; y++)
     {
@@ -132,12 +127,15 @@ render_cloth(struct Cloth* cloth)
                 {
                     if(cloth->constraints.active[y][(x * 2) + c])
                     {
+                        Vec2i a = cloth->constraints.a[y][(x * 2) + c];
+                        int i,j;
+                        j = i = 0;
+                        
+                        
+
                         gl.glDrawElementsBaseVertex(GL_LINES,2,GL_UNSIGNED_INT,(unsigned int*)&indices[c].raw, (cloth->width * (y - 1)) + x - 1);
                     }
                 }
-
-                
-                
             }
 
         }
@@ -145,6 +143,7 @@ render_cloth(struct Cloth* cloth)
 
     gl.glBindBuffer(GL_ARRAY_BUFFER,0);
     gl.glBindVertexArray(0);
+
     return true;
 }
 
